@@ -1,36 +1,166 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧠 Misinfo Hub – AI-Powered Misinformation Detection Platform  
 
-## Getting Started
+> **An interactive misinformation analysis platform** built with **Next.js**, **Three.js**, and **Gemini AI (gemini-1.5-flash-latest)**.  
+> Visualize global misinformation trends, verify facts, and explore AI-powered summaries — all in one unified dashboard.
 
-First, run the development server:
+---
 
+## 🚀 Features Overview
+
+### 🏠 1. Homepage  
+A clean landing section introducing Misinfo Hub with interactive visuals and a 3D AI avatar.  
+![Homepage](public/screenshots/homepage.png)
+
+---
+
+### 📊 2. Dashboard  
+A unified dashboard displaying user actions, recent verifications, and trusted news sources.  
+![Dashboard](public/screenshots/dashboard.png)
+
+---
+
+### 🌍 3. Crisis Globe Visualization  
+The **Crisis Dashboard** visualizes global misinformation spread on a **3D holographic globe** using `Three.js` and `@react-three/fiber`.  
+
+Each hotspot glows based on credibility level:
+- 🟢 **Verified**
+- 🟡 **Partially Verified**
+- 🔴 **Unverified**
+
+![Globe Visualization](public/screenshots/globe.png)
+
+![chart Visualization](public/screenshots/visulization.png)
+
+
+---
+
+### 📰 4. Article Search & Verification  
+Fetch the latest articles through the integrated **Google Fact Check API**, then analyze them using **Gemini AI** for:  
+- Claim verification  
+- Bias detection  
+- Sentiment & tone analysis  
+- AI-generated summaries  
+
+![Article Search](public/screenshots/article-search.png)
+![Verification](public/screenshots/verify.png)
+
+---
+
+### 🤖 5. AI Integration (Gemini API)  
+Misinfo Hub leverages **Gemini 1.5 Flash (latest)** for:  
+- Context-aware fact verification  
+- News summarization  
+- Real-time misinformation categorization  
+
+---
+
+## 🧩 Tech Stack
+
+| Layer | Technology |
+|-------|-------------|
+| **Frontend** | Next.js 14 (App Router) |
+| **3D Visualization** | Three.js + @react-three/fiber |
+| **UI Components** | ShadCN UI + TailwindCSS |
+| **AI Engine** | Google Gemini (gemini-1.5-flash-latest) |
+| **Database** | MongoDB (via Mongoose) |
+| **API Routes** | Next.js Route Handlers |
+| **Deployment** | Vercel |
+
+---
+
+## ⚙️ Getting Started
+
+### 1️⃣ Clone the repository
 ```bash
+git clone https://github.com/Prathamesh28jadhav/Mumbai-Hacks.git
+cd Mumbai-Hacks
+
+2️⃣ Install dependencies
+npm install
+
+3️⃣ Add environment variables
+
+Create a .env.local file in the project root:
+
+MONGODB_URI=your_mongodb_connection_string
+GEMINI_API_KEY=your_gemini_api_key
+
+4️⃣ Run the development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+🧭 Directory Overview
+misinfo-hub/
+├── .next/
+├── node_modules/
+├── public/
+│   ├── logos/                # Brand & source logos
+│   │   ├── file.svg
+│   │   ├── globe.svg
+│   │   ├── next.svg
+│   │   ├── vercel.svg
+│   │   └── window.svg
+│   ├── models/               # 3D models
+│   │   ├── misinformation_model.glb
+│   │   └── agent-avatar.glb
+│   └── screenshots/          # Images for README
+│       ├── homepage.png
+│       ├── dashboard.png
+│       ├── globe.png
+│       ├── article-search.png
+│       └── verify.png
+│
+├── src/
+│   ├── app/
+│   │   ├── favicon.ico
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   │
+│   ├── components/
+│   │   ├── dashboard/
+│   │   │   └── DashboardMain.tsx
+│   │   ├── AgentAvatar.tsx
+│   │   ├── FeaturesGrid.tsx
+│   │   ├── Footer.tsx
+│   │   ├── GlobeScene.tsx
+│   │   ├── HeroSection.tsx
+│   │   ├── Navbar.tsx
+│   │   ├── Testimonials.tsx
+│   │   ├── ThreeModel.tsx
+│   │   ├── TrustedSources.tsx
+│   │   └── CrisisDashboard.tsx
+│   │
+│   ├── ui/                   # ShadCN UI Components
+│   │   ├── Card.tsx
+│   │   ├── Button.tsx
+│   │   ├── Badge.tsx
+│   │   ├── Input.tsx
+│   │   └── ...
+│   │
+│   └── lib/
+│       ├── googleFactCheck.ts
+│       ├── mongodb.ts
+│       ├── openai.ts
+│       ├── User.ts
+│       └── utils.ts
+│
+├── .env.local
+├── .gitignore
+├── components.json
+├── eslint.config.mjs
+├── next-env.d.ts
+├── next.config.ts
+├── package-lock.json
+├── package.json
+├── postcss.config.mjs
+└── README.md
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+💫 Visual Flow
+User → Uploads or fetches article → Gemini AI → Verifies claim →
+Updates Dashboard → Renders on 3D Globe → AI Summary displayed
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+🌐 Deployment
 
-## Learn More
+Easily deploy the app on Vercel with one click:
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+vercel deploy
