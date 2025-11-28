@@ -95,64 +95,66 @@ export async function POST(req: Request) {
     }
 
     // -----------------------------
-    // 4️⃣ AI Verification (Gemini)
-    // -----------------------------
-    const contextToAnalyze = [
-      fullArticleText && `ARTICLE CONTENT:\n${fullArticleText}`,
-      newsContext && `RELATED NEWS:\n${newsContext}`,
-      factSummary !== "No fact-check information found." &&
-        `FACT-CHECK DATA:\n${factSummary} (Rating: ${factRating})`,
-      `CLAIM:\n${claim}`,
-    ]
-      .filter(Boolean)
-      .join("\n\n");
+   // -----------------------------
+// 4️⃣ AI Verification (Gemini)
+// -----------------------------
+const contextToAnalyze = [
+  fullArticleText && `ARTICLE CONTENT:\n${fullArticleText}`,
+  newsContext && `RELATED NEWS:\n${newsContext}`,
+  factSummary !== "No fact-check information found." &&
+    `FACT-CHECK DATA:\n${factSummary} (Rating: ${factRating})`,
+  `CLAIM:\n${claim}`,
+]
+  .filter(Boolean)
+  .join("\n\n");
 
-    const geminiModel = "gemini-2.5-flash";
+const geminiModel = "gemini-2.5-flash";
 
-    const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/${geminiModel}:generateContent?key=${geminiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
+const geminiRes = await fetch(
+  `https://generativelanguage.googleapis.com/v1/models/${geminiModel}:generateContent?key=${geminiKey}`,
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [
+        {
+          parts: [
             {
-              parts: [
-                {
-                  text: `You are an AI misinformation analyst.
+              text: `You are an AI misinformation analyst.
 
 Analyze the provided claim and context.
 
 ${contextToAnalyze}
 
 Follow these rules strictly:
-1. Write a clear **2–3 sentence summary** of the claim or main article.
-2. Assess credibility using:
+1. Assess credibility using:
    - Fact-check data (if any)
    - Related news context
    - Logical consistency of the content
-3. Classify as:
+2. Classify as:
    ✅ VERIFIED — confirmed, factual, or trustworthy
    ⚠️ PARTIAL — mixed evidence, opinion, or unclear
    ❌ UNVERIFIED — lacks evidence, false, or suspicious
-4. Use this exact format:
+3. Write your response in this EXACT format:
 
-SUMMARY: [your concise 2–3 sentence summary]
+SUMMARY: The above news is [VERIFIED/PARTIAL/UNVERIFIED] for article: "${claim}"
 CLASSIFICATION: [VERIFIED / PARTIAL / UNVERIFIED]
-REASONING: [1 short sentence explaining classification]`,
-                },
-              ],
+REASONING: [1-2 sentences explaining why this classification was chosen based on the evidence]
+
+Remember: The SUMMARY must start with "The above news is" followed by the classification status.`,
             },
           ],
-          generationConfig: {
-            temperature: 0.3,
-            maxOutputTokens: 512,
-            topP: 0.8,
-            topK: 40,
-          },
-        }),
-      }
-    );
+        },
+      ],
+      generationConfig: {
+        temperature: 0.3,
+        maxOutputTokens: 512,
+        topP: 0.8,
+        topK: 40,
+      },
+    }),
+  }
+);
 
     if (!geminiRes.ok) {
       const errText = await geminiRes.text();
