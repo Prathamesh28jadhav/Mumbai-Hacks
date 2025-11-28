@@ -1,15 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useRef, Suspense, useMemo } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, useGLTF, Stars, Html } from "@react-three/drei";
+import { OrbitControls, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { gsap } from "gsap";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Bar } from "recharts";
 
 // ------------------------- Article Interface -------------------------
 interface Article {
@@ -21,92 +19,6 @@ interface Article {
   status?: "verified" | "partial" | "unverified";
   summary?: string;
 }
-
-// ------------------------- Hotspots Data -------------------------
-const hotspots = [
-  {
-    lat: 28.7041,
-    lng: 77.1025,
-    country: "India – Delhi",
-    topic: "Politics",
-    status: "unverified",
-    count: 20,
-  },
-  {
-    lat: 19.0760,
-    lng: 72.8777,
-    country: "India – Mumbai",
-    topic: "Climate",
-    status: "partial",
-    count: 15,
-  },
-  {
-    lat: 13.0827,
-    lng: 80.2707,
-    country: "India – Chennai",
-    topic: "Health",
-    status: "verified",
-    count: 9,
-  },
-  {
-    lat: 22.5726,
-    lng: 88.3639,
-    country: "India – Kolkata",
-    topic: "Economy",
-    status: "unverified",
-    count: 12,
-  },
-  {
-    lat: 12.9716,
-    lng: 77.5946,
-    country: "India – Bengaluru",
-    topic: "Technology",
-    status: "partial",
-    count: 11,
-  },
-  {
-    lat: 17.3850,
-    lng: 78.4867,
-    country: "India – Hyderabad",
-    topic: "Education",
-    status: "unverified",
-    count: 13,
-  },
-  {
-    lat: 26.9124,
-    lng: 75.7873,
-    country: "India – Jaipur",
-    topic: "Cultural Heritage",
-    status: "verified",
-    count: 8,
-  },
-  {
-    lat: 25.3176,
-    lng: 82.9739,
-    country: "India – Varanasi",
-    topic: "Religious Narratives",
-    status: "partial",
-    count: 10,
-  },
-  {
-    lat: 23.2599,
-    lng: 77.4126,
-    country: "India – Bhopal",
-    topic: "Environment",
-    status: "unverified",
-    count: 7,
-  },
-  {
-    lat: 26.1445,
-    lng: 91.7362,
-    country: "India – Guwahati",
-    topic: "Regional Conflicts",
-    status: "partial",
-    count: 9,
-  },
-];
-
-
 // ------------------------- Dashboard Main -------------------------
 export default function DashboardMain() {
   const [query, setQuery] = useState("");
@@ -159,7 +71,11 @@ export default function DashboardMain() {
       const res = await fetch("/api/fact-check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ claim: article.title }),
+        body: JSON.stringify({ 
+          claim: article.title,
+          articleUrl: article.url,
+          articleContent: article.description
+        }),
       });
       const data = await res.json();
       setArticles((prev) => {
@@ -168,16 +84,14 @@ export default function DashboardMain() {
         copy[index].summary = data.summary;
         return copy;
       });
-      gsap.fromTo(`.article-card:nth-child(${index + 1})`, { boxShadow: "0 0 0px #00f2ff" }, { boxShadow: "0 0 30px #00f2ff", duration: 0.4, yoyo: true, repeat: 1 });
+      gsap.fromTo(
+        `.article-card:nth-child(${index + 1})`, 
+        { boxShadow: "0 0 0px #00f2ff" }, 
+        { boxShadow: "0 0 30px #00f2ff", duration: 0.4, yoyo: true, repeat: 1 }
+      );
     } catch (err) {
       console.error("Verify failed:", err);
     }
-  };
-
-  const badgeMap: Record<string, "default" | "destructive" | "secondary" | "outline"> = {
-    verified: "default",
-    partial: "secondary",
-    unverified: "destructive",
   };
 
   return (
@@ -192,34 +106,66 @@ export default function DashboardMain() {
 
       {/* ---------------- Search Bar ---------------- */}
       <div className="search-bar flex justify-center mb-10 gap-2">
-        <Input type="text" placeholder="Search for a topic..." className="w-full md:w-1/2 bg-white/10 text-white border-white/20" value={query} onChange={(e) => setQuery(e.target.value)} />
-        <Button onClick={searchArticles} disabled={loading}>{loading ? "Searching..." : "Search"}</Button>
+        <Input 
+          type="text" 
+          placeholder="Search for a topic..." 
+          className="w-full md:w-1/2 bg-white/10 text-white border-white/20" 
+          value={query} 
+          onChange={(e) => setQuery(e.target.value)} 
+        />
+        <Button onClick={searchArticles} disabled={loading}>
+          {loading ? "Searching..." : "Search"}
+        </Button>
       </div>
 
-      {/* ---------------- Articles Grid ---------------- */}
+      {/* ---------------- Articles Grid with Enhanced Badges ---------------- */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {articles.map((a, i) => (
-          <Card key={i} className="article-card bg-white/5 p-4 border border-white/10 backdrop-blur-md">
+          <Card 
+            key={i} 
+            className={`article-card bg-white/5 p-4 border backdrop-blur-md transition-all duration-300 ${
+              a.status === "verified" 
+                ? "border-green-500/30 hover:border-green-500/60" 
+                : a.status === "partial" 
+                ? "border-white/30 hover:border-white/60" 
+                : a.status === "unverified"
+                ? "border-red-500/30 hover:border-red-500/60"
+                : "border-white/10"
+            }`}
+          >
             <h3 className="font-semibold text-lg mb-1 text-white">{a.title}</h3>
             <p className="text-sm text-gray-300 mb-3">{a.description}</p>
+            
             <div className="flex justify-between items-center">
-              <Button size="sm" onClick={() => handleVerify(a, i)}>Verify</Button>
-              {a.status && <Badge variant={badgeMap[a.status]}>{a.status.toUpperCase()}</Badge>}
+              <Button size="sm" onClick={() => handleVerify(a, i)}>
+                Verify
+              </Button>
+              
+              {a.status && (
+                <div className={`px-3 py-1 rounded-full font-bold text-sm flex items-center gap-1 transition-all duration-300 ${
+                  a.status === "verified" 
+                    ? "bg-green-500 text-white border-2 border-green-400 shadow-[0_0_15px_rgba(34,197,94,0.6)]" 
+                    : a.status === "partial" 
+                    ? "bg-white text-black border-2 border-gray-300 shadow-[0_0_15px_rgba(255,255,255,0.4)]" 
+                    : "bg-red-600 text-white border-2 border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.6)]"
+                }`}>
+                  <span>{a.status === "verified" ? "✅" : a.status === "partial" ? "⚠️" : "❌"}</span>
+                  <span>{a.status.toUpperCase()}</span>
+                </div>
+              )}
             </div>
-            {a.summary && <div className="mt-3 text-sm text-gray-200"><strong>AI Summary:</strong> {a.summary}</div>}
+            
+            {a.summary && (
+              <div className="mt-3 p-3 bg-cyan-500/10 border border-cyan-500/20 rounded-lg">
+                <div className="text-sm text-gray-200">
+                  <strong className="text-cyan-400">AI Summary:</strong> {a.summary}
+                </div>
+              </div>
+            )}
           </Card>
         ))}
       </div>
 
-      {/* ---------------- Crisis Map & Trend Graph Side by Side ---------------- */}
-      <div className="mt-10 flex flex-col lg:flex-row gap-6">
-        <div className="flex-1">
-          <CrisisMap />
-        </div>
-        <div className="flex-1">
-          <TrendGraph />
-        </div>
-      </div>
     </div>
   );
 }
@@ -267,135 +213,4 @@ function RobotModel() {
   });
 
   return <primitive ref={ref} object={scene} scale={1.2} />;
-}
-
-// ------------------------- Crisis Map -------------------------
-function latLngToVector3(lat: number, lng: number, radius: number) {
-  const phi = (90 - lat) * (Math.PI / 180);
-  const theta = (lng + 180) * (Math.PI / 180);
-  const x = -(radius * Math.sin(phi) * Math.cos(theta));
-  const z = radius * Math.sin(phi) * Math.sin(theta);
-  const y = radius * Math.cos(phi);
-  return new THREE.Vector3(x, y, z);
-}
-
-function Globe() {
-  const globeRef = useRef<THREE.Mesh>(null!);
-  useFrame(() => { globeRef.current.rotation.y += 0.002; });
-  return <mesh ref={globeRef}><sphereGeometry args={[2, 64, 64]} /><meshStandardMaterial color="#0ff" wireframe transparent opacity={0.25} emissive="#00ffff" emissiveIntensity={0.4} /></mesh>;
-}
-
-function Hotspot({ data }: { data: any }) {
-  const meshRef = useRef<THREE.Mesh>(null!);
-  const [hovered, setHovered] = useState(false);
-  const colorMap: Record<string, string> = { verified: "#22c55e", partial: "#eab308", unverified: "#ef4444" };
-  const basePosition = useMemo(() => { const pos = latLngToVector3(data.lat, data.lng, 2.1); pos.multiplyScalar(1 + data.count * 0.01); return pos; }, [data]);
-
-  useEffect(() => { if (meshRef.current) { gsap.to(meshRef.current.scale, { x: 1.3, y: 1.3, z: 1.3, yoyo: true, repeat: -1, duration: 1.5 + Math.random(), ease: "sine.inOut" }); } }, []);
-
-  return (
-    <group position={basePosition}>
-      <mesh ref={meshRef} onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
-        <sphereGeometry args={[0.07, 16, 16]} />
-        <meshStandardMaterial color={colorMap[data.status]} emissive={colorMap[data.status]} emissiveIntensity={hovered ? 2.5 : 1.5} />
-      </mesh>
-      {hovered && (
-        <Html position={[0, 0.15, 0]} center>
-          <div className="px-3 py-2 bg-black/80 text-cyan-300 text-xs rounded-lg border border-cyan-400/40 backdrop-blur-md">
-            <div className="font-semibold">{data.country}</div>
-            <div className="text-gray-300">{data.topic}</div>
-            <div className="text-cyan-400">{data.status.toUpperCase()} • {data.count} articles</div>
-          </div>
-        </Html>
-      )}
-    </group>
-  );
-}
-
-function CrisisMap() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  useEffect(() => { gsap.fromTo(containerRef.current, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }); }, []);
-
-  return (
-    <div ref={containerRef} className="relative w-full h-[400px] bg-gradient-to-b from-black via-slate-900 to-slate-950 rounded-2xl border border-cyan-500/20 shadow-[0_0_30px_#00ffff20]">
-      <Canvas camera={{ position: [0, 0, 5], fov: 60 }}>
-        <ambientLight intensity={0.8} />
-        <pointLight position={[10, 10, 10]} intensity={1.5} color="#00ffff" />
-        <Stars radius={100} depth={50} count={4000} factor={4} saturation={0} fade />
-        <Globe />
-        {hotspots.map((h, i) => <Hotspot key={i} data={h} />)}
-        <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={0.5} />
-      </Canvas>
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 text-cyan-400 text-lg font-semibold drop-shadow-[0_0_10px_#00ffff90]">🌌 Global Misinformation Hologram Map</div>
-    </div>
-  );
-}
-
-// ------------------------- Trend Graph -------------------------
-function TrendGraph() {
-  const [view, setView] = useState<"line" | "bar">("line");
-  const [trendType, setTrendType] = useState<"daily" | "cumulative">("daily");
-
-  const trendData = useMemo(() => {
-    const dailyData = hotspots.map((h, idx) => ({
-      day: `Day ${idx + 1}`,
-      verified: h.status === "verified" ? h.count : 0,
-      partial: h.status === "partial" ? h.count : 0,
-      unverified: h.status === "unverified" ? h.count : 0,
-    }));
-
-    if (trendType === "cumulative") {
-      let cumVerified = 0, cumPartial = 0, cumUnverified = 0;
-      return dailyData.map((d) => {
-        cumVerified += d.verified;
-        cumPartial += d.partial;
-        cumUnverified += d.unverified;
-        return { ...d, verified: cumVerified, partial: cumPartial, unverified: cumUnverified };
-      });
-    }
-
-    return dailyData;
-  }, [trendType]);
-
-  return (
-    <div className="w-full h-[400px] bg-black/60 rounded-2xl border border-cyan-500/20 p-4 flex flex-col gap-3">
-      {/* Chart Controls */}
-      <div className="flex justify-between items-center mb-2 text-cyan-400">
-        <div>
-          <Button variant={view === "line" ? "default" : "outline"} size="sm" className="mr-2" onClick={() => setView("line")}>Line Chart</Button>
-          <Button variant={view === "bar" ? "default" : "outline"} size="sm" onClick={() => setView("bar")}>Bar Chart</Button>
-        </div>
-        <div>
-          <Button variant={trendType === "daily" ? "default" : "outline"} size="sm" className="mr-2" onClick={() => setTrendType("daily")}>Daily</Button>
-          <Button variant={trendType === "cumulative" ? "default" : "outline"} size="sm" onClick={() => setTrendType("cumulative")}>Cumulative</Button>
-        </div>
-      </div>
-
-      <div className="flex-1">
-        <ResponsiveContainer width="100%" height="100%">
-          {view === "line" ? (
-            <LineChart data={trendData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
-              <XAxis dataKey="day" stroke="#00ffff" />
-              <YAxis stroke="#00ffff" />
-              <Tooltip contentStyle={{ backgroundColor: "#000000AA", border: "1px solid #00ffff", color: "#00ffff" }} />
-              <Legend wrapperStyle={{ color: "#00ffff" }} />
-              <Line type="monotone" dataKey="verified" stroke="#22c55e" strokeWidth={2} />
-              <Line type="monotone" dataKey="partial" stroke="#eab308" strokeWidth={2} />
-              <Line type="monotone" dataKey="unverified" stroke="#ef4444" strokeWidth={2} />
-            </LineChart>
-          ) : (
-            <LineChart data={trendData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
-              <XAxis dataKey="day" stroke="#00ffff" />
-              <YAxis stroke="#00ffff" />
-              <Tooltip contentStyle={{ backgroundColor: "#000000AA", border: "1px solid #00ffff", color: "#00ffff" }} />
-              <Legend wrapperStyle={{ color: "#00ffff" }} />
-              <Bar dataKey="verified" fill="#22c55e" />
-              <Bar dataKey="partial" fill="#eab308" />
-              <Bar dataKey="unverified" fill="#ef4444" />
-            </LineChart>
-          )}
-        </ResponsiveContainer>
-      </div>
-    </div>
-  );
 }
